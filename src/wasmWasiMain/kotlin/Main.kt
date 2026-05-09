@@ -1,7 +1,6 @@
 @file:OptIn(ExperimentalWasmInterop::class)
 
 import kotlin.wasm.WasmImport
-import kotlin.wasm.unsafe.Pointer
 import kotlin.wasm.unsafe.UnsafeWasmMemoryApi
 import kotlin.wasm.unsafe.withScopedMemoryAllocator
 
