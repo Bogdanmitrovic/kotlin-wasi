@@ -74,6 +74,7 @@ val currentOsType = run {
             "aarch64" -> OsArch.ARM64
             else -> OsArch.X86_64
         }
+
         else -> OsArch.UNKNOWN
     }
 
@@ -200,7 +201,7 @@ tasks.withType<KotlinJsTest>().all {
     )
 
     denoExecTask.configure {
-        dependsOn (
+        dependsOn(
             project.provider { this@all.taskDependencies }
         )
     }
@@ -218,7 +219,7 @@ tasks.withType<NodeJsExec>().all {
     )
 
     denoExecTask.configure {
-        dependsOn (
+        dependsOn(
             project.provider { this@all.taskDependencies }
         )
     }
@@ -242,6 +243,7 @@ val unzipWasmEdge = run {
         OsType(OsName.MAC, OsArch.ARM64) -> "darwin_arm64.tar.gz"
         OsType(OsName.WINDOWS, OsArch.X86_32),
         OsType(OsName.WINDOWS, OsArch.X86_64) -> "windows.zip"
+
         else -> error("unsupported os type $currentOsType")
     }
 
@@ -335,7 +337,7 @@ tasks.withType<KotlinJsTest>().all {
     )
 
     wasmEdgeRunTask.configure {
-        dependsOn (
+        dependsOn(
             project.provider { this@all.taskDependencies }
         )
     }
@@ -346,7 +348,7 @@ tasks.withType<KotlinJsTest>().all {
 }
 
 tasks.withType<NodeJsExec>().all {
-     val wasmEdgeRunTask = createWasmEdgeExec(
+    val wasmEdgeRunTask = createWasmEdgeExec(
         inputFileProperty,
         name.replace("Node", "WasmEdge"),
         group,
@@ -354,7 +356,7 @@ tasks.withType<NodeJsExec>().all {
     )
 
     wasmEdgeRunTask.configure {
-        dependsOn (
+        dependsOn(
             project.provider { this@all.taskDependencies }
         )
     }
@@ -364,14 +366,14 @@ tasks.withType<NodeJsExec>().all {
 val wasmtimeVersion = "40.0.0"
 
 val wasmtimeSuffix = when (currentOsType) {
-    OsType(OsName.LINUX, OsArch.X86_64)   -> "x86_64-linux"
-    OsType(OsName.LINUX, OsArch.ARM64)    -> "aarch64-linux"
-    OsType(OsName.MAC, OsArch.X86_64)     -> "x86_64-macos"
-    OsType(OsName.MAC, OsArch.ARM64)      -> "aarch64-macos"
+    OsType(OsName.LINUX, OsArch.X86_64) -> "x86_64-linux"
+    OsType(OsName.LINUX, OsArch.ARM64) -> "aarch64-linux"
+    OsType(OsName.MAC, OsArch.X86_64) -> "x86_64-macos"
+    OsType(OsName.MAC, OsArch.ARM64) -> "aarch64-macos"
     OsType(OsName.WINDOWS, OsArch.X86_32),
     OsType(OsName.WINDOWS, OsArch.X86_64) -> "x86_64-windows"
 
-    else                                  -> error("unsupported os type $currentOsType")
+    else -> error("unsupported os type $currentOsType")
 }
 
 val wasmtimeArtifactName = "wasmtime-v$wasmtimeVersion-$wasmtimeSuffix"
@@ -430,7 +432,7 @@ fun Project.createWasmtimeExec(
 
         val executableName = when (currentOsType.name) {
             OsName.WINDOWS -> "wasmtime.exe"
-            else           -> "wasmtime"
+            else -> "wasmtime"
         }
         executable = wasmtimeDirectory.resolve(executableName).absolutePath
 
@@ -487,4 +489,19 @@ tasks.withType<NodeJsExec>().all {
             project.provider { this@all.taskDependencies }
         )
     }
+}
+
+tasks.register("runWasm", Exec::class) {
+    dependsOn("wasmWasiMainClasses")
+    doFirst {
+        commandLine(
+            "wasmtime",
+            "-W", "gc",
+            "-W", "function-references",
+            "-W", "exceptions",
+            "${layout.buildDirectory.get()}/compileSync/wasmWasi/main/developmentExecutable/kotlin/kotlin-wasm-wasi-example.wasm"
+        )
+        println(layout.buildDirectory.get().toString())
+    }
+    standardInput = System.`in`
 }
