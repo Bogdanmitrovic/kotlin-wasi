@@ -43,3 +43,7 @@ fun main() {
         println("Wasm received: $line")
     }
 }
+
+@WasmExport
+fun dummy() {
+}
