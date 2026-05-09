@@ -500,8 +500,11 @@ tasks.register("runWasm", Exec::class) {
             .asFileTree
             .matching { include("*.wasm") }
             .singleFile
+        val wasmtime = System.getenv("WASMTIME_HOME")
+            ?.let { "$it/bin/wasmtime" }
+            ?: "wasmtime"
         commandLine(
-            "wasmtime",
+            wasmtime,
             "-W", "gc",
             "-W", "function-references",
             "-W", "exceptions",
