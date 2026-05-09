@@ -30,9 +30,29 @@ fun readFromStdin(): String? = withScopedMemoryAllocator { allocator ->
     bytes.decodeToString()
 }
 
+@OptIn(UnsafeWasmMemoryApi::class)
+private fun readByte(): Int {
+    var result : Int = 0
+    withScopedMemoryAllocator { allocator ->
+        val buffer = allocator.allocate(1)
+        val iov = allocator.allocate(8)
+        (iov + 0).storeInt(buffer.address.toInt())
+        (iov + 4).storeInt(1)
+        val bytesReadPtr = allocator.allocate(4)
+        val errno = wasiFdRead(0, iov.address.toInt(), 1, bytesReadPtr.address.toInt())
+        result = if (errno == 0 && bytesReadPtr.loadInt() > 0) {
+            buffer.loadByte().toInt() and 0xFF
+        } else -1
+    }
+    return result
+}
+
 fun main() {
     while (true) {
-        val line = readFromStdin() ?: break
-        println("Wasm received: $line")
+        //val line = readFromStdin() ?: break
+        //println("Wasm received: $line")
+        val b = readByte()
+        if (b == -1) break
+        print(b.toChar())
     }
 }
