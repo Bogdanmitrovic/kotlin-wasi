@@ -500,11 +500,16 @@ tasks.register("runWasm", Exec::class) {
             .asFileTree
             .matching { include("*.wasm") }
             .singleFile
-        val wasmtime = System.getenv("WASMTIME_HOME")
-            ?.let { "$it/bin/wasmtime" }
-            ?: "wasmtime"
+        val wasmtimeDirectory = unzipWasmtime.get().destinationDir.resolve(wasmtimeArtifactName)
+
+        val executableName = when (currentOsType.name) {
+            OsName.WINDOWS -> "wasmtime.exe"
+            else -> "wasmtime"
+        }
+        executable = wasmtimeDirectory.resolve(executableName).absolutePath
+
         commandLine(
-            wasmtime,
+            executable,
             "-W", "gc",
             "-W", "function-references",
             "-W", "exceptions",
