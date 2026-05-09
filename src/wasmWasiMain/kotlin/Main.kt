@@ -32,7 +32,7 @@ fun readFromStdin(): String? = withScopedMemoryAllocator { allocator ->
 
 @OptIn(UnsafeWasmMemoryApi::class)
 private fun readByte(): Int {
-    var result : Int = 0
+    var result = 0
     withScopedMemoryAllocator { allocator ->
         val buffer = allocator.allocate(1)
         val iov = allocator.allocate(8)
