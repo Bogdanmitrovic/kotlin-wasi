@@ -492,16 +492,21 @@ tasks.withType<NodeJsExec>().all {
 }
 
 tasks.register("runWasm", Exec::class) {
+    val compileTask = tasks.named("compileDevelopmentExecutableKotlinWasmWasi")
     dependsOn("wasmWasiMainClasses")
+    dependsOn(compileTask)
     doFirst {
+        val wasmFile = compileTask.get().outputs.files
+            .asFileTree
+            .matching { include("*.wasm") }
+            .singleFile
         commandLine(
             "wasmtime",
             "-W", "gc",
             "-W", "function-references",
             "-W", "exceptions",
-            "${layout.buildDirectory.get()}/compileSync/wasmWasi/main/developmentExecutable/kotlin/kotlin-wasm-wasi-example.wasm"
+            wasmFile.absolutePath
         )
-        println(layout.buildDirectory.get().toString())
     }
     standardInput = System.`in`
 }
